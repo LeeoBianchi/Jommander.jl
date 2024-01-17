@@ -4,17 +4,18 @@
 
 Jommander exploits the package [HealpixMPI.jl](https://github.com/LeeoBianchi/HealpixMPI.jl) to implement a parallel, efficient and Julia-only Gibbs Sampling algorithm of CMB power spectrum.
 
-
+The following figure shows how Jommander, through the sampling of its power spectrum, is able to infer and reconstruct a statistically consistent samples of the CMB map (bottom-right), starting from a noisy, smoothed and masked sky map (top-left).
+The top-right panel shows the maximum-likelihood solution of the true CMB map, i.e. without the fluctuations (bottom-left panel) induced at each step of the chain.
 
 <img src="figures/4plots.png" width="700">
 
-The figure shows how Jommander, through the sampling of its power spectrum, is able to infer and reconstruct a statistically consistent samples of the CMB map (bottom-right), starting from a noisy, smoothed and masked sky map (top-left). The top-right panel shows the maximum-likelihood solution of the true CMB map, i.e. without the fluctuations (bottom-left panel) induced at each step of the chain.
-
 <br/><br/>
+
+This second plot shows the 2-σ confidence interval of 250 power spectrum samples produced by Jommander, compared to the true power spectrum measured by Planck.
 
 <img src="figures/PS.png" width="500">
 
-This second plot shows the 2-$\sigma$ confidence interval of 250 power spectrum samples produced by Jommander, compared to the true power spectrum measured by Planck.
+
 
 ## Some math
 
