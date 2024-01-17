@@ -1,7 +1,6 @@
 using LinearAlgebra
 using Dates
-include("../HealpixMPI/src/HealpixMPI.jl")
-using .HealpixMPI
+using HealpixMPI
 import Healpix
 
 function CG(    #Ax = b  ----> x = InvA b
@@ -27,7 +26,7 @@ function CG(    #Ax = b  ----> x = InvA b
         x += d * α #x = x + αd FIXME
         if i % 50 == 0 #if i is divisible by 50
             r = b - A(x) #r = b - Ax
-            print("i = $i")
+            print("i = $i;  ")
             println("δ = $δ_new")
         else
             r -= q * α #r = r - αq  FIXME
@@ -46,11 +45,11 @@ end
 #HealpixMPI-optimized version
 function CG(    #Ax = b  ----> x = InvA b
     A::Function,
-    b::HealpixMPI.DAlm{S,N,I}, #rhs
-    x::HealpixMPI.DAlm{S,N,I}; #initial guess
+    b::HealpixMPI.DAlm{S,N}, #rhs
+    x::HealpixMPI.DAlm{S,N}; #initial guess
     i_max::Integer = 1000,
     ϵ = 1e-10
-) where {S<:HealpixMPI.Strategy, N<:Number, I<:Integer}
+) where {S<:HealpixMPI.Strategy, N<:Number}
     i = 1
     r = b - A(x)#r = b - Ax
     d = deepcopy(r) #d = r
@@ -127,14 +126,14 @@ end
 #benchmark version, to measure the pure iterations with no overhead
 function CG_benchmark(    #Ax = b  ----> x = InvA b
     A::Function,
-    b::HealpixMPI.DAlm{S,N,I}, #rhs
-    x::HealpixMPI.DAlm{S,N,I},
-    r::HealpixMPI.DAlm{S,N,I}, #r = b - A(x)
-    d::HealpixMPI.DAlm{S,N,I}, #d = deepcopy(r)
-    q::HealpixMPI.DAlm{S,N,I}, #q = deepcopy(d)
+    b::HealpixMPI.DAlm{S,N}, #rhs
+    x::HealpixMPI.DAlm{S,N},
+    r::HealpixMPI.DAlm{S,N}, #r = b - A(x)
+    d::HealpixMPI.DAlm{S,N}, #d = deepcopy(r)
+    q::HealpixMPI.DAlm{S,N}, #q = deepcopy(d)
     δ_new::Float64; #iδ_new = r ⋅ r
     i_max::Integer = 1000
-) where {S<:HealpixMPI.Strategy, N<:Number, I<:Integer}
+) where {S<:HealpixMPI.Strategy, N<:Number}
     i = 1
     δ_0 = δ_new
     print("########################## \n")

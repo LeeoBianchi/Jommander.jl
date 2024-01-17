@@ -20,13 +20,11 @@ const NSIDE = 128
 W = 4*π/nside2npix(NSIDE)
 const lmax = 3*NSIDE - 1
 const FWHM_deg = 1
-const Noise_var = 3 
+const Noise_var = 3
 beam = Healpix.gaussbeam(deg2rad(FWHM_deg), lmax)
 wind = Healpix.pixwin(NSIDE)
 #convolution beam - pixel
 A_l = beam[1:lmax + 1] .* wind[1:lmax + 1]
-
-plot(A_l)
 
 C_l = readClFromFITS("Planck_TTTEEE_bestfit_Cl", Float64)
 InvC = 1. ./ C_l[1:lmax+1]

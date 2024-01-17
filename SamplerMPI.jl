@@ -15,8 +15,8 @@ using HealpixMPI
     Gets fluctuations on RHS
 """
 function get_ω(
-    ω_map::HealpixMPI.DMap{S,Float64,Int64}, #aux d_map
-    ω₁_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},
+    ω_map::HealpixMPI.DMap{S,Float64}, #aux d_map
+    ω₁_lm::HealpixMPI.DAlm{S,ComplexF64},
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     A_l::AbstractArray,
@@ -24,11 +24,11 @@ function get_ω(
     local_N::AbstractVector;
     nthreads::Integer = 1
 ) where {S<:HealpixMPI.Strategy}
-    ω_map.pixels = randn(length(ω_map.pixels)) ./ sqrt.(local_N) #maybe then store Sqrt_InvN instead of computing every time
+    @views ω_map.pixels[:,1] = randn(size(ω_map)[1]) ./ sqrt.(local_N)
     Healpix.adjoint_alm2map!(ω_map, ω₁_lm, aux_map_leg, aux_alm_leg; nthreads = nthreads) #Yᵀ
     Healpix.almxfl!(ω₁_lm, A_l) #we convolve it with the beam
     ω₂_lm = deepcopy(ω₁_lm)
-    Healpix.synalm!(InvC, ω₂_lm) #FIXME: implement a version of synalm which sums the result on the alm passed
+    Healpix.synalm!(InvC, ω₂_lm)
     ω₁_lm.alm .+= ω₂_lm.alm
     ω₁_lm
 end
@@ -39,9 +39,9 @@ end
 
 #with aux alm and map in input, more efficient!!
 function get_rhs_noω(
-    d_map::HealpixMPI.DMap{S,Float64,Int64},
-    aux_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},
-    aux_map::HealpixMPI.DMap{S,Float64,Int64},
+    d_map::HealpixMPI.DMap{S,Float64},
+    aux_lm::HealpixMPI.DAlm{S,ComplexF64},
+    aux_map::HealpixMPI.DMap{S,Float64},
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     A_l::AbstractArray,
@@ -49,7 +49,7 @@ function get_rhs_noω(
     local_N::AbstractVector; #to distribute with Scatter in the main
     nthreads::Integer = 1
 ) where {S<:HealpixMPI.Strategy}
-    aux_map.pixels = d_map.pixels ./ local_N
+    @views aux_map.pixels[:,1] = d_map.pixels[:,1] ./ local_N
     Healpix.adjoint_alm2map!(aux_map, aux_lm, aux_map_leg, aux_alm_leg; nthreads = nthreads) #Y^t = W^-1 Y^-1
     Healpix.almxfl!(aux_lm, A_l) #Aᵀ, this is the rhs with no ω's
     res_lm = aux_lm + get_ω(aux_map, deepcopy(aux_lm), aux_alm_leg, aux_map_leg, A_l, InvC.*0., local_N.*Inf; nthreads = nthreads)
@@ -62,9 +62,9 @@ end
 
 #with aux alm and map in input, more efficient!!
 function get_rhs_ω(
-    d_map::HealpixMPI.DMap{S,Float64,Int64},
-    aux_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},
-    aux_map::HealpixMPI.DMap{S,Float64,Int64},
+    d_map::HealpixMPI.DMap{S,Float64},
+    aux_lm::HealpixMPI.DAlm{S,ComplexF64},
+    aux_map::HealpixMPI.DMap{S,Float64},
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     A_l::AbstractArray,
@@ -72,7 +72,7 @@ function get_rhs_ω(
     local_N::AbstractVector; #to distribute with Scatter in the main
     nthreads::Integer = 1
 ) where {S<:HealpixMPI.Strategy}
-    aux_map.pixels = d_map.pixels ./ local_N
+    @views aux_map.pixels[:,1] = d_map.pixels[:,1] ./ local_N
     get_ω(aux_map, deepcopy(aux_lm), aux_alm_leg, aux_map_leg, A_l, InvC, local_N; nthreads = nthreads)
 end
 
@@ -82,9 +82,9 @@ end
 
 #with aux alm and map in input, more efficient!!
 function get_rhs(
-    d_map::HealpixMPI.DMap{S,Float64,Int64},
-    aux_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},
-    aux_map::HealpixMPI.DMap{S,Float64,Int64},
+    d_map::HealpixMPI.DMap{S,Float64},
+    aux_lm::HealpixMPI.DAlm{S,ComplexF64},
+    aux_map::HealpixMPI.DMap{S,Float64},
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     A_l::AbstractArray,
@@ -92,7 +92,7 @@ function get_rhs(
     local_N::AbstractVector; #to distribute with Scatter in the main
     nthreads::Integer = 1
 ) where {S<:HealpixMPI.Strategy}
-    aux_map.pixels = d_map.pixels ./ local_N
+    @views aux_map.pixels[:,1] = d_map.pixels[:,1] ./ local_N
     Healpix.adjoint_alm2map!(aux_map, aux_lm, aux_map_leg, aux_alm_leg; nthreads = nthreads) #Y^t = W^-1 Y^-1
     Healpix.almxfl!(aux_lm, A_l) #Aᵀ, this is the rhs with no ω's
     aux_lm += get_ω(aux_map, deepcopy(aux_lm), aux_alm_leg, aux_map_leg, A_l, InvC, local_N; nthreads = nthreads)
@@ -106,9 +106,9 @@ end
 #implements aux map and alms passed, more efficient
 
 function get_lhs(
-    dalm::HealpixMPI.DAlm{S,ComplexF64,Int64},
-    aux_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},
-    aux_map::HealpixMPI.DMap{S,Float64,Int64},
+    dalm::HealpixMPI.DAlm{S,ComplexF64},
+    aux_lm::HealpixMPI.DAlm{S,ComplexF64},
+    aux_map::HealpixMPI.DMap{S,Float64},
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     A_l::AbstractArray,
@@ -119,7 +119,7 @@ function get_lhs(
     aux_lm.alm = deepcopy(dalm.alm)
     Healpix.almxfl!(aux_lm, A_l) #A
     Healpix.alm2map!(aux_lm, aux_map, aux_alm_leg, aux_map_leg; nthreads = nthreads) #Y
-    aux_map.pixels ./= local_N #InvN
+    @views aux_map.pixels[:,1] ./= local_N #InvN
     Healpix.adjoint_alm2map!(aux_map, aux_lm, aux_map_leg, aux_alm_leg; nthreads = nthreads) #Yᵀ
     Healpix.almxfl!(aux_lm, A_l) #Aᵀ
     aux_lm.alm .+= almxfl(dalm, InvC).alm #InvC x_lm
@@ -133,10 +133,10 @@ end
     Implements the CG
 """
 function s_given_C!(
-    alm::HealpixMPI.DAlm{S,ComplexF64,Int64},     #initial guess for CG (usually previous step)
-    d_map::HealpixMPI.DMap{S,Float64,Int64},   #observed map (data)
-    aux_lm::HealpixMPI.DAlm{S,ComplexF64,Int64},  #auxiliary
-    aux_map::HealpixMPI.DMap{S,Float64,Int64}, #auxiliary
+    alm::HealpixMPI.DAlm{S,ComplexF64},     #initial guess for CG (usually previous step)
+    d_map::HealpixMPI.DMap{S,Float64},   #observed map (data)
+    aux_lm::HealpixMPI.DAlm{S,ComplexF64},  #auxiliary
+    aux_map::HealpixMPI.DMap{S,Float64}, #auxiliary
     aux_alm_leg::StridedArray{ComplexF64,3},
     aux_map_leg::StridedArray{ComplexF64,3},
     local_N::AbstractArray,            #local subset of noise cov matrix diagonal
@@ -171,7 +171,7 @@ function get_ρ(lmax)
 end
 
 function C_given_s!(
-    alm::HealpixMPI.DAlm{S,ComplexF64,Int64},
+    alm::HealpixMPI.DAlm{S,ComplexF64},
     InvC::AbstractVector,
     ) where {S<:HealpixMPI.Strategy}
     l_s = Vector{Float64}(0:alm.info.lmax)*2 .+1
