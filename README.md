@@ -2,7 +2,8 @@
 
 ## A Parallel Julia Implementation of CMB Gibbs Sampling
 
-Jommander exploits the package [HealpixMPI.jl](https://github.com/LeeoBianchi/HealpixMPI.jl) to implement a parallel, efficient and Julia-only Gibbs Sampling algorithm of CMB power spectrum.
+Jommander exploits the package [HealpixMPI.jl](https://github.com/LeeoBianchi/HealpixMPI.jl) to implement a parallel and Julia-only Gibbs Sampling algorithm of CMB power spectrum.
+Its name, as well as the core algorithm, is derived by the Fortran software Commander [(Eriksen et al., 2004)](https://iopscience.iop.org/article/10.1086/425219), where the "J" stands, of course, for Julia.
 
 The following figure shows how Jommander, through the sampling of its power spectrum, is able to infer and reconstruct a statistically consistent samples of the CMB map (bottom-right), starting from a noisy, smoothed and masked sky map (top-left).
 The top-right panel shows the maximum-likelihood solution of the true CMB map, i.e. without the fluctuations (bottom-left panel) induced at each step of the chain.
