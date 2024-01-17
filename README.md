@@ -1,4 +1,4 @@
-# Jommander.jl
+# Jommander
 
 ## A Parallel Julia Implementation of CMB Gibbs Sampling
 
