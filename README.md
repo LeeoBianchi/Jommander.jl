@@ -4,8 +4,17 @@
 
 Jommander exploits the package [HealpixMPI.jl](https://github.com/LeeoBianchi/HealpixMPI.jl) to implement a parallel, efficient and Julia-only Gibbs Sampling algorithm of CMB power spectrum.
 
-The following figure shows how Jommander, through the sampling of its power spectrum, is able to infer and reconstruct a statistically consistent samples of the CMB map (bottom-right), starting from a noisy, smoothed and masked sky map (top-left). The top-right panel shows the maximum-likelihood solution of the true CMB map, i.e. without the fluctuations (bottom-left panel) induced at each step of the chain.
 
+
+<img src="figures/4plots.png" width="700">
+
+The figure shows how Jommander, through the sampling of its power spectrum, is able to infer and reconstruct a statistically consistent samples of the CMB map (bottom-right), starting from a noisy, smoothed and masked sky map (top-left). The top-right panel shows the maximum-likelihood solution of the true CMB map, i.e. without the fluctuations (bottom-left panel) induced at each step of the chain.
+
+<br/><br/>
+
+<img src="figures/PS.png" width="500">
+
+This second plot shows the 2-$\sigma$ confidence interval of 250 power spectrum samples produced by Jommander, compared to the true power spectrum measured by Planck.
 
 ## Some math
 
@@ -48,12 +57,15 @@ In fact, in order to obtain the desired sample of $\mathbf{\tilde s}$, Jommander
 ````
 Where $\omega_1$ and $\tilde{\omega}_2$ are two Gaussian random vectors in pixel and harmonic space respectively.
 
-In general, it is always convenient to deal with each element in the space where they are naturally diagonal. 
-For this reason, the noise covariance matrix will remain defined in the pixel space, and so does $\omega_1$. 
+In general, it is always convenient to deal with each element in the space where they are naturally diagonal.
+For this reason, the noise covariance matrix will remain defined in the pixel space, and so does $\omega_1$.
 The spherical harmonic transforms $\mathbf{Y}$ and $\mathbf{Y}^\mathrm{T}$ are applied to make everything consistent.
 
-## Run
+## Run an example
+
 To run an example of CMB power spectrum sampling, starting from an observed simulated map with noise and incomplete sky coverage, use the script `PSchainMPI.jl` as:
 ````shell
 $ mpiexec -n {Ntask} julia PSchainMPI.jl
 ````
+
+The script `PSchainplot.jl` can then be used to produce plots of the obtained chain of power spectra.
